@@ -209,7 +209,11 @@ bool Manager::parseOpdsDom(const pugi::xml_document& doc,
   return true;
 }
 
-
+bool Manager::readOpds(const std::string& content,
+                       const std::string& contentOriginUri)
+{
+  return readOpds(content, contentOriginUri,false);
+}
 
 bool Manager::readOpds(const std::string& content,
                        const std::string& contentOriginUri,
