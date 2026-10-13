@@ -72,6 +72,18 @@ std::string maskVariableOPDSFeedData(std::string s)
   return s;
 }
 
+#define OPDS_FEED_TAG \
+    "<feed xmlns=\"http://www.w3.org/2005/Atom\"\n" \
+    "      xmlns:dc=\"http://purl.org/dc/terms/\"\n" \
+    "      xmlns:kiwix=\"https://kiwix.org/namespace/opds\"\n" \
+    "      xmlns:opds=\"http://opds-spec.org/2010/catalog\">\n"
+
+#define CATALOG_LINK_TAGS \
+    "  <link rel=\"self\" href=\"\" type=\"application/atom+xml\" />\n" \
+    "  <link rel=\"search\""                                            \
+           " type=\"application/opensearchdescription+xml\""            \
+           " href=\"/ROOT%23%3F/catalog/searchdescription.xml\" />\n"
+
 #define CATALOG_ENTRY(UUID, TITLE, SUMMARY, LANG, NAME, CATEGORY, TAGS, EXTRA_LINK, CONTENT_NAME, FILE_NAME, LENGTH) \
     "  <entry>\n"                                                       \
     "    <id>urn:uuid:" UUID "</id>\n"                                \
@@ -175,6 +187,7 @@ std::string maskVariableOPDSFeedData(std::string s)
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"            \
     "<feed xmlns=\"http://www.w3.org/2005/Atom\"\n"           \
     "      xmlns:dc=\"http://purl.org/dc/terms/\"\n"          \
+    "      xmlns:kiwix=\"https://kiwix.org/namespace/opds\"\n" \
     "      xmlns:opds=\"https://specs.opds.io/opds-1.2\"\n"   \
     "      xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\">\n"  \
     "  <id>12345678-90ab-cdef-1234-567890abcdef</id>\n"       \
