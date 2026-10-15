@@ -1214,7 +1214,8 @@ std::unique_ptr<Response> InternalServer::handle_random(const RequestContext& re
 
   try {
     auto entry = archive->getRandomEntry();
-    return build_redirect(bookName, getFinalItem(*archive, entry));
+    const auto fragment = entry.isRedirect() ? entry.getRedirectFragment() : "";
+    return build_redirect(bookName, getFinalItem(*archive, entry), fragment);
   } catch(zim::EntryNotFound& e) {
     return HTTP404Response(request)
            + nonParameterizedMessage("random-article-failure");
@@ -1293,10 +1294,16 @@ const std::string CONTENT_CSP_HEADER =
 } // unnamed namespace
 
 std::unique_ptr<Response>
-InternalServer::build_redirect(const std::string& bookName, const zim::Item& item) const
+InternalServer::build_redirect(const std::string& bookName, const zim::Item& item, const std::string& fragment) const
 {
   const auto contentPath = "/content/" + bookName + "/" + item.getPath();
-  const auto url = m_root + kiwix::urlEncode(contentPath);
+  auto url = m_root + kiwix::urlEncode(contentPath);
+  if (!fragment.empty()) {
+    // The fragment must be encoded on its own, after an unencoded '#' -
+    // encoding it together with contentPath would percent-encode the '#'
+    // itself and turn it into part of the path instead of a URI fragment.
+    url += "#" + kiwix::urlEncode(fragment);
+  }
   return Response::build_redirect(url);
 }
 
@@ -1343,7 +1350,8 @@ std::unique_ptr<Response> InternalServer::handle_content(const RequestContext& r
       // 2. The ZIM file uses old namespace scheme, and the resource at urlStr
       //    is not present but can be found under one of the 'A', 'I', 'J' or
       //    '-' namespaces, in which case that resource is returned instead.
-      return build_redirect(bookName, getFinalItem(*archive, entry));
+      const auto fragment = entry.isRedirect() ? entry.getRedirectFragment() : "";
+      return build_redirect(bookName, getFinalItem(*archive, entry), fragment);
     }
     auto response = ItemResponse::build(request, entry.getItem());
     response->set_etag_body(archiveUuid);
@@ -1421,7 +1429,7 @@ std::unique_ptr<Response> InternalServer::handle_raw(const RequestContext& reque
     } else {
       auto entry = archive->getEntryByPath(itemPath);
       if (entry.isRedirect()) {
-        return build_redirect(bookName, entry.getItem(true));
+        return build_redirect(bookName, entry.getItem(true), entry.getRedirectFragment());
       }
       auto response = ItemResponse::build(request, entry.getItem());
       response->set_etag_body(archiveUuid);
